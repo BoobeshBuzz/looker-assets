@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chennai Airport Hub - Executive Visualization</title>
     
+    <script src="https://gcs-web.looker.com/viz/v1/looker.js"></script>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; overflow: hidden; }
         #map { width: 100%; height: 100vh; }
 
         /* Premium Dark Slate Tooltip Design */
@@ -34,132 +36,105 @@
 <div id="map"></div>
 
 <script>
-    // Focus map exactly between the primary and secondary runways
-    const mapCenter = [12.9920, 80.1680];
-    const map = L.map('map').setView(mapCenter, 14); 
+    // Register the custom visualization within Looker's framework
+    looker.plugins.visualizations.add({
+        create: function(element, config) {
+            // Setup the underlying Leaflet Map Instance
+            const mapCenter = [12.9920, 80.1680];
+            this._map = L.map('map').setView(mapCenter, 14); 
 
-    // Inject High-Resolution Satellite Raster Tiles (Free / No Token)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Imagery &copy; Esri'
-    }).addTo(map);
+            // Inject High-Resolution Satellite Raster Tiles
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Imagery &copy; Esri'
+            }).addTo(this._map);
 
-    // =========================================================================
-    // 1. FIXED GEOSPATIAL POLYGON: TRUE CHENNAI AIRPORT PERIMETER WALL
-    // =========================================================================
-// =========================================================================
-// CHENNAI INTERNATIONAL AIRPORT (MAA)
-// Approximate operational airport perimeter
-// Coordinates are ordered clockwise
-// =========================================================================
+            // =========================================================================
+            // 1. FIXED GEOSPATIAL POLYGON: TRUE CHENNAI AIRPORT PERIMETER WALL
+            // =========================================================================
+            const airportBoundaryCoords = [
+                [13.0065, 80.1548], [13.0070, 80.1598], [13.0068, 80.1652], [13.0062, 80.1715],
+                [13.0056, 80.1770], [13.0048, 80.1816], [13.0038, 80.1845], [13.0015, 80.1858],
+                [12.9990, 80.1860], [12.9962, 80.1854], [12.9935, 80.1842], [12.9908, 80.1827],
+                [12.9882, 80.1812], [12.9855, 80.1782], [12.9830, 80.1735], [12.9818, 80.1680],
+                [12.9818, 80.1622], [12.9822, 80.1570], [12.9836, 80.1535], [12.9858, 80.1516],
+                [12.9890, 80.1504], [12.9930, 80.1508], [12.9970, 80.1518], [13.0010, 80.1528],
+                [13.0042, 80.1539], [13.0065, 80.1548]
+            ];
 
-const airportBoundaryCoords = [
-    // North-west (Runway 25 threshold)
-    [13.0065, 80.1548],
-    [13.0070, 80.1598],
-    [13.0068, 80.1652],
-    [13.0062, 80.1715],
-    [13.0056, 80.1770],
-    [13.0048, 80.1816],
+            const airportHighlightZone = L.polygon(airportBoundaryCoords, {
+                color: '#0ea5e9',
+                weight: 3,
+                opacity: 0.9,
+                fillColor: '#0ea5e9',
+                fillOpacity: 0.15
+            }).addTo(this._map);
 
-    // North-east cargo / terminal area
-    [13.0038, 80.1845],
-    [13.0015, 80.1858],
-    [12.9990, 80.1860],
-    [12.9962, 80.1854],
+            airportHighlightZone.bindPopup("<strong style='color:#0ea5e9;'>CHENNAI INTERNATIONAL AIRPORT (MAA)</strong><br><span style='font-size:12px; color:#555;'>Operational zone spanning across Tirusulam and Meenambakkam. Includes dual intersecting structural runways.</span>");
 
-    // Eastern terminal frontage
-    [12.9935, 80.1842],
-    [12.9908, 80.1827],
-    [12.9882, 80.1812],
+            // =========================================================================
+            // 2. INTERACTIVE DATA MARKERS WITH HOVER TOOLTIPS
+            // =========================================================================
+            const infrastructureAssets = [
+                {
+                    name: "Chennai Intl Airport - T2",
+                    type: "Terminal Infrastructure",
+                    desc: "Primary terminal hub visibly hosting international airline fleets.",
+                    coords: [12.9822, 80.1636]
+                },
+                {
+                    name: "Airport Metro Station",
+                    type: "Mass Transit Corridor",
+                    desc: "Elevated direct metro alignment connecting structural networks to the city center.",
+                    coords: [12.980806, 80.164197]
+                },
+                {
+                    name: "Terminal 1 (Kamaraj Domestic Terminal)",
+                    type: "Terminal Infrastructure",
+                    desc: "Chennai Airport's Terminal 1, also known as the Kamaraj Domestic Terminal, is the city's primary hub for domestic arrivals and departures.",
+                    coords: [12.9832, 80.1666] 
+                }
+            ];
 
-    // South-east
-    [12.9855, 80.1782],
-    [12.9830, 80.1735],
+            infrastructureAssets.forEach(asset => {
+                const nodeMarker = L.circleMarker(asset.coords, {
+                    radius: 8,
+                    fillColor: "#38bdf8", 
+                    color: "#ffffff",     
+                    weight: 2,
+                    fillOpacity: 0.9,
+                    interactive: true
+                }).addTo(this._map);
 
-    // Southern end
-    [12.9818, 80.1680],
-    [12.9818, 80.1622],
-    [12.9822, 80.1570],
+                const interactiveCard = `
+                    <div class="tooltip-title">${asset.name}</div>
+                    <div class="tooltip-meta">${asset.type}</div>
+                    <div>${asset.desc}</div>
+                `;
 
-    // South-west
-    [12.9836, 80.1535],
-    [12.9858, 80.1516],
+                nodeMarker.bindTooltip(interactiveCard, {
+                    className: 'custom-tooltip',
+                    direction: 'right',
+                    sticky: true,
+                    opacity: 0.98
+                });
 
-    // Western boundary
-    [12.9890, 80.1504],
-    [12.9930, 80.1508],
-    [12.9970, 80.1518],
-    [13.0010, 80.1528],
-    [13.0042, 80.1539],
-    [13.0065, 80.1548]   // Close polygon
-];
-
-    // Styled like an enterprise dashboard perimeter overlay
-    const airportHighlightZone = L.polygon(airportBoundaryCoords, {
-        color: '#0ea5e9',         /* Vibrant Cyan Outline */
-        weight: 3,                /* Clean line thickness */
-        opacity: 0.9,
-        fillColor: '#0ea5e9',     /* Tint matches outline */
-        fillOpacity: 0.15         /* Keeps satellite buildings clearly visible underneath */
-    }).addTo(map);
-
-    // Contextual popup window on click
-    airportHighlightZone.bindPopup("<strong style='color:#0ea5e9;'>CHENNAI INTERNATIONAL AIRPORT (MAA)</strong><br><span style='font-size:12px; color:#555;'>Operational zone spanning across Tirusulam and Meenambakkam. Includes dual intersecting structural runways.</span>");
-
-    // =========================================================================
-    // 2. INTERACTIVE DATA MARKERS WITH HOVER TOOLTIPS
-    // =========================================================================
-    const infrastructureAssets = [
-        {
-            name: "Chennai Intl Airport - T2",
-            type: "Terminal Infrastructure",
-            desc: "Primary terminal hub visibly hosting international airline fleets.",
-            coords: [12.9822, 80.1636]
+                nodeMarker.on('mouseover', function () {
+                    this.setStyle({ fillColor: '#22c55e', radius: 10 });
+                });
+                nodeMarker.on('mouseout', function () {
+                    this.setStyle({ fillColor: '#38bdf8', radius: 8 });
+                });
+            });
         },
-        {
-            name: "Airport Metro Station",
-            type: "Mass Transit Corridor",
-            desc: "Elevated direct metro alignment connecting structural networks to the city center.",
-            coords: [12.980806, 80.164197]
-        },
-        {
-            name: "Terminal 1 (Kamaraj Domestic Terminal)",
-            type: "Terminal Infrastructure",
-            desc: "Chennai Airport's Terminal 1, also known as the Kamaraj Domestic Terminal, is the city's primary hub for domestic arrivals and departures, offering a modern, efficient gateway to destinations across India.",
-            coords: [12.9832, 80.1666] 
+
+        updateAsync: function(data, element, config, queryResponse, details, done) {
+            // Ensure map geometry handles window resizing cleanly inside Looker dashboards
+            if (this._map) {
+                this._map.invalidateSize();
+            }
+            // Signal Looker that rendering processing has finished
+            done();
         }
-    ];
-
-    infrastructureAssets.forEach(asset => {
-        const nodeMarker = L.circleMarker(asset.coords, {
-            radius: 8,
-            fillColor: "#38bdf8", 
-            color: "#ffffff",     
-            weight: 2,
-            fillOpacity: 0.9,
-            interactive: true
-        }).addTo(map);
-
-        const interactiveCard = `
-            <div class="tooltip-title">${asset.name}</div>
-            <div class="tooltip-meta">${asset.type}</div>
-            <div>${asset.desc}</div>
-        `;
-
-        nodeMarker.bindTooltip(interactiveCard, {
-            className: 'custom-tooltip',
-            direction: 'right',
-            sticky: true,
-            opacity: 0.98
-        });
-
-        // Hover scale dynamics
-        nodeMarker.on('mouseover', function () {
-            this.setStyle({ fillColor: '#22c55e', radius: 10 });
-        });
-        nodeMarker.on('mouseout', function () {
-            this.setStyle({ fillColor: '#38bdf8', radius: 8 });
-        });
     });
 </script>
 
