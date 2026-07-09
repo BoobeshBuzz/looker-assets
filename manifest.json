@@ -1,10 +1,12 @@
 {
   "name": "Chennai Airport Map",
   "organization": "BoobeshBuzz",
-  "description": "Premium Chennai Airport Hub Mapping Tool",
-  "logoUrl": "",
-  "companyUrl": "",
-  "supportUrl": "",
+  "description": "Premium Chennai Airport Hub Mapping Tool with Leaflet Satellite Layer",
+  "logoUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  "companyUrl": "https://github.com/BoobeshBuzz",
+  "supportUrl": "https://github.com/BoobeshBuzz/looker-assets/issues",
+  "privacyPolicyUrl": "https://github.com/BoobeshBuzz/looker-assets",
+  "termsOfServiceUrl": "https://github.com/BoobeshBuzz/looker-assets",
   "components": [
     {
       "id": "chennaiMap",
