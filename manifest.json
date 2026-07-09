@@ -1,0 +1,20 @@
+{
+  "name": "Chennai Airport Map",
+  "organization": "BoobeshBuzz",
+  "description": "Premium Chennai Airport Hub Mapping Tool",
+  "components": [
+    {
+      "id": "chennaiMap",
+      "name": "Chennai Operational Map",
+      "iconUrl": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      "description": "Interactive Airport Mapping Engine",
+      "resources": {
+        "js": [
+          "https://boobeshbuzz.github.io/looker-assets/index.html"
+        ],
+        "css": []
+      }
+    }
+  ],
+  "devMode": true
+}
