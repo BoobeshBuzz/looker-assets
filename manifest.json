@@ -13,7 +13,7 @@
       "description": "Interactive Airport Mapping Engine with Leaflet Satellite Layer",
       "resources": {
         "js": [
-          "https://boobeshbuzz.github.io/looker-assets/index.js"
+          "https://boobeshbuzz.github.io/looker-assets/project.js"
         ],
         "css": []
       }
