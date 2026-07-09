@@ -11,33 +11,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* Force container elements to be exactly the size Looker provides */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100% !important; 
-            width: 100% !important;
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            background: #0f172a; 
-            overflow: hidden; 
-        }
-        
-        /* Looker injects code into a parent container, we force our map absolute to fill it */
-        #map { 
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 100% !important; 
-            width: 100% !important;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; overflow: hidden; }
+        #map { width: 100%; height: 100vh; }
 
         /* Premium Dark Slate Tooltip Design */
         .custom-tooltip {
             background: rgba(15, 23, 42, 0.95) !important;
             color: #f8fafc !important;
-            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important; /* Tech Blue Border */
             border-radius: 8px !important;
             padding: 12px 16px !important;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
@@ -45,6 +26,7 @@
             line-height: 1.5;
         }
         .custom-tooltip::before { border-right-color: rgba(15, 23, 42, 0.95) !important; }
+        
         .tooltip-title { font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; font-size: 13px; }
         .tooltip-meta { font-size: 10px; color: #94a3b8; font-style: italic; margin-bottom: 6px; }
     </style>
@@ -54,9 +36,10 @@
 <div id="map"></div>
 
 <script>
+    // Register the custom visualization within Looker's framework
     looker.plugins.visualizations.add({
         create: function(element, config) {
-            // Setup the underlying Leaflet Map Instance inside the container Looker gives us
+            // Setup the underlying Leaflet Map Instance
             const mapCenter = [12.9920, 80.1680];
             this._map = L.map('map').setView(mapCenter, 14); 
 
@@ -145,10 +128,11 @@
         },
 
         updateAsync: function(data, element, config, queryResponse, details, done) {
-            // Force redraw layout math inside Looker dashboard
+            // Ensure map geometry handles window resizing cleanly inside Looker dashboards
             if (this._map) {
                 this._map.invalidateSize();
             }
+            // Signal Looker that rendering processing has finished
             done();
         }
     });
